@@ -10,28 +10,51 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: new Counter(child: new MyHomePage(title: 'Flutter Demo Home Page')),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
-
-  @override
-  _MyHomePageState createState() => new _MyHomePageState();
+class Count {
+  int value;
+  Count(this.value);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class Counter extends InheritedWidget {
+  Counter({
+    Key key,
+    Widget child,
+  }): super(key: key, child: child);
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  final Count _count = new Count(0);
+
+  static Counter of(BuildContext context) {
+    return context.inheritFromWidgetOfExactType(Counter);
   }
 
+  void addCount() {
+    _count.value++;
+  }
+
+  int get count => _count.value;
+
+  @override
+  bool updateShouldNotify(Counter old) {
+    print('${_count.value}, ${old._count.value}');
+    return _count.value != old._count.value;
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  final String title;
+  MyHomePage({Key key, this.title}): super(key: key);
+
+  @override
+  State<MyHomePage> createState() => new MyHomePageState();
+}
+
+
+class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -46,14 +69,17 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             new Text(
-              '$_counter',
+              Counter.of(context).count.toString(),
               style: Theme.of(context).textTheme.display1,
             ),
           ],
         ),
       ),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: () {
+          Counter.of(context).addCount();
+          setState((){});
+        },
         tooltip: 'Increment',
         child: new Icon(Icons.add),
       ),
